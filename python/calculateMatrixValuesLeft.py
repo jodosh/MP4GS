@@ -4,6 +4,7 @@ import glob
 
 # termination criteria
 criteria = (cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, 100, .01)
+goodImages = 0
 
 # prepare object points, like (0,0,0), (1,0,0), (2,0,0) ....,(6,5,0)
 objp = np.zeros((3*4,3), np.float32)
@@ -34,6 +35,7 @@ for fname in images:
 			print("Something went wrong with cornerSubPix in file: %s" % (fname))
 		else:
 			imgpoints.append(corners)
+			goodImages+=1
 
 			# Draw and display the corners
 			cv2.drawChessboardCorners(img, (4,3), corners,ret)
@@ -42,8 +44,17 @@ for fname in images:
 
 			
 			
-			
-ret, intrinsicMatrix, distortionCoeffs, rvecs, tvecs = cv2.calibrateCamera(objpoints, imgpoints, gray.shape[::-1],None,None)
-np.savez("intrinsicMatrixLeft", intrinsicMatrix)
-np.savez("distortionCoeffsLeft", distortionCoeffs)
+if goodImages >9:			
+	ret, intrinsicMatrix, distortionCoeffs, rvecs, tvecs = cv2.calibrateCamera(objpoints, imgpoints, gray.shape[::-1],None,None)
+
+
+	h,  w = img.shape[:2]
+	refinedCameraMatrix, roi=cv2.getOptimalNewCameraMatrix(intrinsicMatrix,distortionCoeffs,(w,h),1,(w,h))
+
+	np.savez("refinedCameraMatrixLeft", refinedCameraMatrix)
+	np.savez("ROILeft", roi)
+	np.savez("intrinsicMatrixLeft", intrinsicMatrix)
+	np.savez("distortionCoeffsLeft", distortionCoeffs)
+else:
+	print("You need to supply at least 10 good images. You supplied %d" % (goodImages))
 cv2.destroyAllWindows()

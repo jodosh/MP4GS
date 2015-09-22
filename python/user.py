@@ -34,19 +34,14 @@ def centerMass(image):
 	return centroid
 	
 	
-def undistortImg(image, intrinsicMatrix, distortionCoeffs):
-	print("one")
+def undistortImg(image, intrinsicMatrix, distortionCoeffs, refinedCameraMatrix, ROI):
 	
-	#undistortMaps = cv2.initUndistortRectifyMap(intrinsicMatrix, distortionCoeffs, R, intrinsicMatrix, size, m1type[, map1[, map2]])
+	# undistort
+	undistortedImage = cv2.undistort(image, intrinsicMatrix, distortionCoeffs, None, refinedCameraMatrix)
+
+	# crop the image
+	x,y,w,h = ROI
+	undistortedImage = undistortedImage[y:y+h, x:x+w]
+		
+	return undistortedImage
 	
-	#return undistortedImage
-	
-# void undistortImg(IplImage *imageA, CvMat *intrinsic, CvMat *distortion)
-# {
-	# IplImage* mapxA = cvCreateImage(cvGetSize(imageA), IPL_DEPTH_32F, 1);
-	# IplImage* mapyA = cvCreateImage(cvGetSize(imageA), IPL_DEPTH_32F, 1);
-	# cvInitUndistortMap(intrinsic, distortion, mapxA, mapyA);
-	# IplImage *tA = cvCloneImage(imageA);
-	# cvRemap(tA, imageA, mapxA, mapyA); // undistort image
-	# cvReleaseImage(&tA);
-# }
