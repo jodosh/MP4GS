@@ -16,7 +16,6 @@ def setCounter():
   counterArr[2] = ser.read(1)
   
   counter = counterArr[0]+(counterArr[1]*256)+(counterArr[2]*65536)
-  print("DEBUG: counter is %d" % counter)
   return counter
 
 

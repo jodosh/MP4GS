@@ -4,7 +4,7 @@ import serial
 
 
 loopCounter = 0
-inByte = bytearray(4800) #4800 pixels in an 80x60 image each pixel is 2-bit
+inByte = bytearray(4800) #4800 pixels in an 80x60 image each pixel is 8-bit
 counterArr = bytearray(3)
 ser = serial.Serial('/dev/ttyACM0', 115200, timeout=None)
 isTrue = True
@@ -16,7 +16,6 @@ def setCounter():
   counterArr[2] = ser.read(1)
   
   counter = counterArr[0]+(counterArr[1]*256)+(counterArr[2]*65536)
-  print("DEBUG: counter is %d" % counter)
   return counter
 
 
@@ -43,28 +42,38 @@ def getImage(fileName, counter):
 	
 	#Just for Testing
 	cv2.imshow('img',image)
-	cv2.waitKey(0)
-	cv2.imwrite("2bitGrey.bmp", image)
+	cv2.imwrite(fileName, image)
 	return image
 
 
 
 while(isTrue):
 
-	print("Press anykey to take a picture.")
 	print("You have already captured %d images" % (loopCounter))
-	#cv2.waitKey(0)
-	ser.write("A") #write A out of serial port to let MP4GS know we are ready for a picture
-	
-	counter = setCounter()
-  
-	if (loopCounter < 10):
-		image = getImage(("0%dLeft.bmp" % (loopCounter)), counter)
-		isTrue = False
-		cv2.destroyAllWindows()
+	s = raw_input('Press anykey to take a picture, press Q to quit\n')
+	if s == "Q":
+	  ser.write("Q") #write Q out of serial port to let MP4GS know we are done
+	  cv2.destroyAllWindows()
+	  ser.close()
+	  isTrue = False
 	else:
+	  ser.write("A") #write A out of serial port to let MP4GS know we are ready for a picture
+	
+	  counter = setCounter()
+  
+	  if (loopCounter < 10):
+		image = getImage(("0%dLeft.bmp" % (loopCounter)), counter)
+	  else:
 		image = getImage(("%dLeft.bmp" % loopCounter), counter)
-		isTrue = False
-		cv2.destroyAllWindows()
+		
+	
+	  counter = setCounter()
+  
+	  if (loopCounter < 10):
+		image = getImage(("0%dRight.bmp" % (loopCounter)), counter)
+		loopCounter += 1
+	  else:
+		image = getImage(("%dRight.bmp" % loopCounter), counter)
+		loopCounter += 1
   
     
