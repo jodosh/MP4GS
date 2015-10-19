@@ -11,3 +11,10 @@ The Python port requires:
 	pyserial
 	numpy
 	glob
+	
+	
+	
+	
+	
+The NewPing directory is a copy of the arduino library for the Ping sensor on the MP4GS platform
+http://playground.arduino.cc/Code/NewPing
