@@ -1,0 +1,39 @@
+#######################################
+# Syntax Coloring Map For Arm
+#######################################
+
+#######################################
+# Datatypes (KEYWORD1)
+#######################################
+
+#######################################
+# Methods and Functions (KEYWORD2)
+#######################################
+
+unfold	KEYWORD2
+fold	KEYWORD2
+lift	KEYWORD2
+extend	KEYWORD2
+retract	KEYWORD2
+lower	KEYWORD2
+
+#######################################
+# Instances (KEYWORD2)
+#######################################
+
+Arm	KEYWORD2
+
+#######################################
+# Constants (LITERAL1)
+#######################################
+
+MD25	LITERAL1
+FAST	LITERAL1
+NORM	LITERAL1
+SLOW	LITERAL1
+
+forw	LITERAL1
+back	LITERAL1
+right	LITERAL1
+left	LITERAL1
+

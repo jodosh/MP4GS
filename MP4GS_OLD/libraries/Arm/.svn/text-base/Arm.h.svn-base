@@ -1,0 +1,53 @@
+/*
+  Arm.h - Library for MP4GS platform movement
+
+  Author: Alvaro Aguilar
+  Date: Feb. 21, 2011
+*/
+
+#ifndef Arm_h
+#define Arm_h
+
+#include "WProgram.h"
+#include "..\Servo\Servo.h"
+
+
+class Arm
+{
+  public:
+    Arm(uint8_t jointPin, uint8_t basePin, uint8_t levelPin, uint8_t gripperPin, uint8_t servoPwr1, uint8_t servoPwr2);
+    Arm(int jointPin, int basePin, int levelPin, int gripperPin, int servoPwr1, int servoPwr2);
+    void unfold();
+    void extend();
+    void retract();
+    void lift();
+    void lower();
+    void fold();
+//    void mv_grip(long pulse);
+    void mv_grip(unsigned int pulse);
+     
+  private:
+    void power_on();
+    void power_off();
+	
+    unsigned int baseo, basec, basex;
+    unsigned int jointo, jointc, jointx;
+    unsigned int levelx, levelo;
+    unsigned int grippero, gripperc;
+    int jopu;
+
+    uint8_t _jointPin;
+    uint8_t _basePin;
+    uint8_t _levelPin;
+    uint8_t _gripperPin;
+    uint8_t _servoPwr1;
+    uint8_t _servoPwr2;
+};
+
+/*
+extern Servo BASE;
+extern Servo JOINT;
+extern Servo GRIPPER;
+extern Servo LEVEL;
+*/
+#endif

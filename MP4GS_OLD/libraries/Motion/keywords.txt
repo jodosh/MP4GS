@@ -1,0 +1,45 @@
+#######################################
+# Syntax Coloring Map For Motion
+#######################################
+
+#######################################
+# Datatypes (KEYWORD1)
+#######################################
+
+#######################################
+# Methods and Functions (KEYWORD2)
+#######################################
+
+get_encoders	KEYWORD2
+enc2distance	KEYWORD2
+compare_encoders	KEYWORD2
+md25_init	KEYWORD2
+md25_cmd	KEYWORD2
+mv_forw	KEYWORD2
+mv_back	KEYWORD2
+mv_left	KEYWORD2
+mv_right	KEYWORD2
+mv_stop	KEYWORD2
+mv_lineFollow	KEYWORD2
+check_motor	KEYWORD2
+
+#######################################
+# Instances (KEYWORD2)
+#######################################
+
+Motion	KEYWORD2
+
+#######################################
+# Constants (LITERAL1)
+#######################################
+
+MD25	LITERAL1
+FAST	LITERAL1
+NORM	LITERAL1
+SLOW	LITERAL1
+
+forw	LITERAL1
+back	LITERAL1
+right	LITERAL1
+left	LITERAL1
+

@@ -1,0 +1,345 @@
+/*
+  Motion.cpp - Library for MP4GS platform movement
+
+  Author: Alvaro Aguilar
+  Date: Feb. 21, 2011
+*/
+
+#include "Motion.h"
+
+#include "WProgram.h"
+// #include "..\Wire\Wire.h" 
+
+
+Motion::Motion()
+{
+	Wire.begin();
+	thisMD25[16] = 0;
+	enc1_before = 0;
+	enc2_before = 0;
+	enc1_after = 0;
+	enc2_after = 0;
+}
+
+
+void Motion::get_encoders()
+{
+
+  Wire.beginTransmission(MD25);
+  Wire.send(2);
+  Wire.endTransmission();
+  enc1_before = 0;
+  enc2_before = 0;
+  i = 2;
+  
+  Wire.requestFrom(MD25, 8);
+  j = Wire.available();
+  while (j) {
+    thisMD25[i] = Wire.receive();
+    if (i < 6) {
+      enc1_before <<= 8;
+      enc1_before += thisMD25[i];
+    } else {
+      enc2_before <<= 8;
+      enc2_before += thisMD25[i];
+    }
+    i++;
+    j--;
+  }
+}
+
+
+long Motion::enc2distance()
+{
+	return ((enc1_before + enc2_before) / 2 * 314 * 360);
+}
+
+bool Motion::compare_encoders(char mode)
+{
+	switch (mode) {
+    case forw :
+      if (enc1_after >= enc1_before && enc2_after >= enc2_before) {
+        return 0;
+      } else { 
+        return 1;
+      }
+      break;
+    case back :
+      if (enc1_after <= enc1_before && enc2_after <= enc2_before) {
+        return 0;
+      } else {
+        return 1;
+      }
+      break;
+    case right :
+      if (enc1_after >= enc1_before && enc2_after <= enc2_before) {
+        return 0;
+      } else return 1;
+      break;
+    case left :
+      if (enc1_after <= enc1_before && enc2_after >= enc2_before) {
+        return 0;
+      } else return 1;
+      break;
+  }
+}
+
+
+//Initialize MD25 to a given "mode" operation
+void Motion::md25_init(unsigned char mode) 
+{
+  if (mode > 4) {
+    mode = 0;
+  }
+  Wire.beginTransmission(MD25);
+  Wire.send(15);
+  Wire.send(mode);
+  Wire.endTransmission();
+}
+
+//Send a custom command to the command register in the MD25 
+void Motion::md25_cmd(unsigned char cmd) 
+{
+  Wire.beginTransmission(MD25);
+  Wire.send(16);
+  Wire.send(cmd);
+  Wire.endTransmission();
+}
+
+// Move MP4GS forward at a specified speed
+// @params: 'distance' in mm, velocity should be SLOW, NORM or FAST
+// @vars: changes global vars enc1_*, enc2_*, enc_distance 
+void Motion::mv_forw (unsigned long distance, unsigned char velocity) 
+{
+  enc_dist = 0;
+  get_encoders();
+  
+  enc_dist = distance * 360 / 314;      // One rotation = 314mm     
+  enc1_after = enc_dist + enc1_before;  // Add the wanted distance
+  enc2_after = enc_dist + enc2_before;  // to each encoder value
+  switch (velocity) {
+    case SLOW : 
+      motor1 = 128 + 42;
+      break; 
+    case NORM :
+      motor1 = 128 + 84;
+      break;
+    case FAST :
+      motor1 = 128 + 127;
+      break;
+    default :         // Use NORM speed
+      motor1 = 128 + 84;
+      break;
+  }  
+  Wire.beginTransmission(MD25);
+  Wire.send(0);
+  motor2 = motor1;
+  Wire.send(motor1);
+  Wire.send(motor2);
+  Wire.endTransmission();
+}
+
+// Move MP4GS backward at a specified speed
+// @params: 'distance' in mm, velocity should be SLOW, NORM or FAST
+// @vars: changes global vars enc1_*, enc2_*, enc_distance 
+void Motion::mv_back (unsigned long distance, unsigned char velocity) 
+{
+  get_encoders();
+  
+  enc_dist = distance * 360 / 314;            // One rotation = 314mm     
+  enc1_after = enc1_before - enc_dist;  // Subtract the wanted distance
+  enc2_after = enc2_before - enc_dist;  // to each encoder value
+  switch (velocity) {                   // Decide what speed to use!
+    case SLOW : 
+      motor1 = 128 - 42;
+      break; 
+    case NORM :
+      motor1 = 128 - 84;
+      break;
+    case FAST :
+      motor1 = 128 - 128;
+      break;
+    default :        // Use NORM speed
+      motor1 = 128 - 84;
+      break;
+  }  
+  Wire.beginTransmission(MD25);
+  Wire.send(0);                         // Always write to first register
+  motor2 = motor1;
+  Wire.send(motor1);
+  Wire.send(motor2);
+  Wire.endTransmission();
+}
+
+// Turn MP4GS right by specified degrees
+// @params: 'degs' are from 0-3600, velocity: SLOW
+void Motion::mv_left (unsigned long degs) 
+{
+  get_encoders(); 
+  if (degs > 3600) {
+    degs = 3600;
+  }
+ 
+  enc_dist = degs * 211 / 1000;        // angle * 2.11 = encoder cnts
+  
+  enc1_after = enc1_before - enc_dist;  // Add the wanted distance
+  enc2_after = enc2_before + enc_dist;  // to each encoder value
+  motor1 = 128 - 11; 
+  motor2 = 128 + 11;
+  Wire.beginTransmission(MD25);
+  Wire.send(0);
+  Wire.send(motor1);
+  Wire.send(motor2);
+  Wire.endTransmission();
+}
+
+// Turn MP4GS left by specified degrees
+// @params: 'degs' are from 0-3600 (360.0), velocity: SLOW
+void Motion::mv_right (unsigned long degs) {
+  get_encoders(); 
+  if (degs > 3600) {
+    degs = 3600;
+  }
+  enc_dist = degs * 211 / 1000;         // degs * 211 = encoder cnt
+  
+  enc1_after = enc1_before + enc_dist;  // Add the wanted distance
+  enc2_after = enc2_before - enc_dist;  // to each encoder value
+  motor1 = 128 + 11; 
+  motor2 = 128 - 11;
+  Wire.beginTransmission(MD25);
+  Wire.send(0);
+  Wire.send(motor1);
+  Wire.send(motor2);
+  Wire.endTransmission();
+}
+
+// Makes MP4GS follow a line using 
+// the QT1 sensors connected to pins...
+// NOTE: Assure to change pin definitios if you move these signals!
+void Motion::mv_lineFollow(uint8_t leftQTI1, uint8_t leftQTI2, uint8_t midQTI, uint8_t rightQTI2, uint8_t rightQTI1) 
+{
+// Set the pins connected to Line Follower as input
+  pinMode(leftQTI1, INPUT);
+  pinMode(leftQTI2, INPUT);
+  pinMode(midQTI, INPUT);
+  pinMode(rightQTI2, INPUT);
+  pinMode(rightQTI1, INPUT);
+// Activate internal 20k pull-ups to make the device act as digital reader
+  digitalWrite(leftQTI1, HIGH);
+  digitalWrite(leftQTI2, HIGH);
+  digitalWrite(midQTI, HIGH);
+  digitalWrite(rightQTI1, HIGH);
+  digitalWrite(rightQTI2, HIGH);
+
+  boolean left1, left2, mid, right2, right1;
+  boolean line = 1;
+  motor1 = 128+11;
+  motor2 = 128+11;
+  Wire.beginTransmission(MD25);
+  Wire.send(0);
+  Wire.send(motor1);
+  Wire.send(motor2);
+  Wire.endTransmission();
+  
+  while (line) {
+    left1 = digitalRead(leftQTI1);
+    left2 = digitalRead(leftQTI2);
+    mid = digitalRead(midQTI);
+    right2 = digitalRead(rightQTI2);
+    right1 = digitalRead(rightQTI1);
+
+    if (!mid && !left2 && !left1 && !right2 && !right1) {
+      // I reached the end of the line!
+      delay(100);
+      left1 = digitalRead(leftQTI1);
+      left2 = digitalRead(leftQTI2);
+      mid = digitalRead(midQTI);
+      right2 = digitalRead(rightQTI2);
+      right1 = digitalRead(rightQTI1);
+      if (!mid && !left2 && !left1 && !right2 && !right1) {
+	delay(100);
+        left1 = digitalRead(leftQTI1);
+        left2 = digitalRead(leftQTI2);
+        mid = digitalRead(midQTI);
+        right2 = digitalRead(rightQTI2);
+        right1 = digitalRead(rightQTI1);
+        if (!mid && !left2 && !left1 && !right2 && !right1) {
+          motor1 = 128;
+          motor2 = 128;    
+          line = 0;
+        }
+      }
+    }
+    else {
+      if (left1) {
+        motor1 = 135 - 30;
+        motor2 = 135 + 30;
+        // HARD turn LEFT
+      }
+      else if (left2) {
+        motor1 = 140 - 16;
+        motor2 = 140 + 16;
+        // SLOW turn LEFT
+      }
+    
+      if (right1) {
+        // HARD turn RIGHT
+        motor1 = 135 + 30;
+        motor2 = 135 - 30;
+      }
+      else if (right2) {
+        // SLOW turn RIGHT
+        motor1 = 140 + 16;
+        motor2 = 140 - 16;
+      }
+      if (mid && !right1 && !left1) {
+        // Move forward if we are back on track
+        motor1 = 128+12;
+        motor2 = 128+12;
+      }
+    }  // end checking IF-ELSE
+    Wire.beginTransmission(MD25);
+    Wire.send(0);
+    Wire.send(motor1);
+    Wire.send(motor2);  
+    Wire.endTransmission();
+  } // end WHILE loop (only exit if all sensors are WHITE)
+  pinMode(leftQTI1, OUTPUT);
+  pinMode(leftQTI2, OUTPUT);
+  pinMode(midQTI, OUTPUT);
+  pinMode(rightQTI2, OUTPUT);
+  pinMode(rightQTI1, OUTPUT);
+// Set pins as OUTPUT and put their output at 0V to save power
+  digitalWrite(leftQTI1, LOW);
+  digitalWrite(leftQTI2, LOW);
+  digitalWrite(midQTI, LOW);
+  digitalWrite(rightQTI1, LOW);
+  digitalWrite(rightQTI2, LOW);
+}
+
+// Stops MP4GS on the spot
+void Motion::mv_stop() 
+{
+  motor1 = 128;
+  motor2 = motor1;  
+  Wire.beginTransmission(MD25);
+  Wire.send(0);
+  Wire.send(motor1);
+  Wire.send(motor2);
+  Wire.endTransmission();
+}
+
+// Returns current speed of motor
+char Motion::check_motor(char motor)
+{
+	if (motor != 1 || motor !=2) {
+		motor = 1;
+	}
+	if (motor == 1) {
+		return motor1;
+	}	else  return motor2;
+} 
+
+
+
+

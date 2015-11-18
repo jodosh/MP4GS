@@ -1,0 +1,266 @@
+/*
+  Arm.cpp - Library for MP4GS platform movement
+
+  Author: Alvaro Aguilar
+  Date: Feb. 21, 2011
+*/
+
+#include "Arm.h"
+
+
+Arm::Arm(uint8_t jointPin, uint8_t basePin, uint8_t levelPin, uint8_t gripperPin, uint8_t servoPwr1, uint8_t servoPwr2)
+{
+	
+  _jointPin = jointPin;
+  _basePin = basePin;
+  _levelPin = levelPin;
+  _gripperPin = gripperPin;
+  _servoPwr1 = servoPwr1;
+  _servoPwr2 = servoPwr2;
+	
+  baseo  = 1150;
+  basec  = 1450;
+  basex  = 1125;
+
+  jointo = 1385;
+  jointc = 2105;
+  jointx = 1100;
+
+  levelx = 1475;
+  levelo = 1775;
+
+  grippero = 1600;
+  gripperc = 2100;
+
+  jopu = 0;
+    	 
+}
+
+Arm::Arm(int jointPin, int basePin, int levelPin, int gripperPin, int servoPwr1, int servoPwr2)
+{
+
+  Arm((uint8_t)jointPin, (uint8_t)basePin, (uint8_t)levelPin, (uint8_t)gripperPin, (uint8_t)servoPwr1, (uint8_t)servoPwr2);
+
+}
+
+
+// Power On and Initialize the arm to an unfolded position
+void Arm::unfold()
+{
+
+  Servo BASE;
+  Servo JOINT;
+  Servo LEVEL;
+  Servo GRIPPER;
+
+  JOINT.attach(_jointPin, 875, 2120);
+  BASE.attach(_basePin, 1125, 1465);
+  LEVEL.attach(_levelPin, 1300, 1990);
+  GRIPPER.attach(_gripperPin, 1600, 2070); 
+
+  BASE.writeMicroseconds(basec);
+  JOINT.writeMicroseconds(jointc);
+  LEVEL.writeMicroseconds(levelx);
+  	
+  power_on();
+
+  BASE.writeMicroseconds(1130);       //BASE quick move to unfold
+  LEVEL.writeMicroseconds(levelo);     //Set level servo level for defualt position
+  GRIPPER.writeMicroseconds(grippero); //open gripper
+  
+  for(jopu = jointc; jopu > jointo; jopu -= 3)  //Unfolds joint gradually  
+  { 
+    JOINT.writeMicroseconds(jopu);
+    delay(35);                           
+  }
+
+  BASE.writeMicroseconds(baseo); //Final unfolded position to stop Base from fast move
+  JOINT.writeMicroseconds(jointo); //Resend joint position to try and reduce jittering
+  delay(4000); //Wait 4 seconds for arm to steady  
+
+  JOINT.detach();
+  BASE.detach();
+  LEVEL.detach();
+  GRIPPER.detach();
+ 
+}
+
+
+// Extend the arm even further in front of the robot
+void Arm::extend() 
+{
+  Servo BASE;
+  Servo JOINT;
+  Servo LEVEL;
+  Servo GRIPPER;
+
+  JOINT.attach(_jointPin, 875, 2120);
+  BASE.attach(_basePin, 1125, 1465);
+  LEVEL.attach(_levelPin, 1300, 1990);
+  GRIPPER.attach(_gripperPin, 1600, 2070); 
+  BASE.writeMicroseconds(basex); //Base servo to extended position
+  
+  for(jopu =jointo; jopu > jointx; jopu -= 3)  //Gradually extend joint servo 
+  { 
+    JOINT.writeMicroseconds(jopu);
+    delay(15);
+  }
+  
+  LEVEL.writeMicroseconds(levelx); //Set Level for extended position
+  delay(5000); //Wait for arm to settle
+
+  JOINT.detach();
+  BASE.detach();
+  LEVEL.detach();
+  GRIPPER.detach();
+
+}
+
+
+// Retract the arm from extra extended position
+void Arm::retract() 
+{
+
+  Servo BASE;
+  Servo JOINT;
+  Servo LEVEL;
+  Servo GRIPPER;
+
+  JOINT.attach(_jointPin, 875, 2120);
+  BASE.attach(_basePin, 1125, 1465);
+  LEVEL.attach(_levelPin, 1300, 1990);
+  GRIPPER.attach(_gripperPin, 1600, 2070); 
+  LEVEL.writeMicroseconds(levelo); //Set Level for default unfolded position
+  
+  BASE.writeMicroseconds(1200);   //BASE quick move
+  delay(2500);
+  BASE.writeMicroseconds(baseo);  //Stop Base move
+ 
+  for(jopu = jointx; jopu < jointo; jopu += 3)  //Gradually move joint 
+  { 
+    JOINT.writeMicroseconds(jopu);
+    delay(15);
+  }
+ 
+  delay(2000); //Wait for arm to settle
+
+  JOINT.detach();
+  BASE.detach();
+  LEVEL.detach();
+  GRIPPER.detach();
+
+}
+
+// Fold the arm back onto default position and power off
+void Arm::fold() 
+{
+
+  Servo BASE;
+  Servo JOINT;
+  Servo LEVEL;
+  Servo GRIPPER;
+
+  JOINT.attach(_jointPin, 875, 2120);
+  BASE.attach(_basePin, 1125, 1465);
+  LEVEL.attach(_levelPin, 1300, 1990);
+  GRIPPER.attach(_gripperPin, 1600, 2070); 
+
+  GRIPPER.writeMicroseconds(grippero); //Open Gripper
+  BASE.writeMicroseconds(1550); //Base servo position to move faster
+  delay(4500); //4.5 Second Delay to allow base to move before joint does
+  
+  for(jopu = jointo; jopu < jointc; jopu += 5)  //Moves the joint servo gradually to folded position 
+  { 
+    JOINT.writeMicroseconds(jopu);
+    delay(15);
+  }
+
+  BASE.writeMicroseconds(basec); //Real folded position for Base to stop it in proper place from the fast move
+  delay(2500); //wait 2.5 seconds to let arm settle
+  power_off();
+  
+  JOINT.detach();
+  BASE.detach();
+  LEVEL.detach();
+  GRIPPER.detach();
+
+}
+
+
+// Lift the arm so as to lift up a load
+void Arm::lift() 
+{
+
+  Servo BASE;
+  BASE.attach(_basePin, 1125, 1465);
+
+  BASE.writeMicroseconds(1250);
+  delay(5000);
+  BASE.detach();  
+
+}
+
+
+// Lower the arm to place a load down
+void Arm::lower()
+{
+
+  Servo BASE;
+  BASE.attach(_basePin, 1125, 1465);
+  
+  BASE.writeMicroseconds(baseo);
+  delay(5000);
+  BASE.detach();
+
+} 
+
+
+// Move the gripper
+//void Arm::mv_grip(long pulse) 
+//{
+//
+//  mv_grip((unsigned int)pulse);
+//
+//}
+
+
+// Move the gripper
+void Arm::mv_grip(unsigned int pulse)
+{
+  if (pulse < 1600) {
+    pulse = 1600;
+  }
+  else if (pulse > 2070) {
+    pulse = 2070;
+  }
+
+  Servo GRIPPER;
+
+  GRIPPER.attach(_gripperPin, 1600, 2070); 
+  GRIPPER.writeMicroseconds(pulse);
+  delay(500);
+  GRIPPER.detach();
+} 
+
+
+///////////// Private Methods ///////////////
+
+void Arm::power_on()
+{
+    
+  pinMode(_servoPwr1, OUTPUT);
+  pinMode(_servoPwr2, OUTPUT);
+  pinMode(_servoPwr1, HIGH);
+  pinMode(_servoPwr2, HIGH); 
+ 
+}
+
+
+void Arm::power_off()
+{
+
+  digitalWrite(_servoPwr1, LOW);
+  digitalWrite(_servoPwr2, LOW);
+  digitalWrite(13, LOW);  	
+
+}
