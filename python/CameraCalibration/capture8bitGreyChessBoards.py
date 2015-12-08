@@ -6,7 +6,7 @@ import serial
 loopCounter = 0
 inByte = bytearray(4800) #4800 pixels in an 80x60 image each pixel is 8-bit
 counterArr = bytearray(3)
-ser = serial.Serial('/dev/ttyACM0', 115200, timeout=None)
+ser = serial.Serial('/dev/ttyACM3', 115200, timeout=None)
 isTrue = True
 
 
@@ -32,7 +32,8 @@ def getImage(fileName, counter):
 	image = image.reshape(60,80)
 	
 	#Just for Testing
-	cv2.imshow('img',image)
+	#cv2.imshow('img',image)
+	#cv2.waitKey(1)
 	cv2.imwrite(fileName, image)
 	return image
 
