@@ -1,0 +1,14 @@
+--Sample Procedure to using MP4GS Vision Extension--
+
+1) Get the sample chess board images from the MP4GS system to calibrate the cameras
+
+	a)load the "CaptureChessboards" example from uCamArduinoLibrary on the arduino (notice the readme in the file from configuration.)
+	
+	b)run the "CaptureChessboards$BITDEPTH" processing sketch with approperate bit depth (8bit is what the Arduino example is set to)
+	
+	
+2) Generare File list
+
+	a) have all the images generated from step one in a folder with imagelist_creator.exe
+		1) run .\imagelist_creator.exe image_listA.xml $(ls *First.bmp -name)
+		2) run .\imagelist_creator.exe image_listB.xml $(ls *Second.bmp -name)
