@@ -42,7 +42,14 @@ def getImage(counter):
 	#cv2.imwrite(fileName, image)
 	return image
 
+	
+leftCamera = np.load('LeftCamera.npz')
+rightCamera = np.load('RightCamera.npz')
 
+#rightCamera['refinedCameraMatrix']
+#rightCamera['roi']
+#rightCamera['intrinsicMatrix']
+#rightCamera['distortionCoeffs']
 
 while(isTrue):
 
@@ -53,4 +60,8 @@ while(isTrue):
 	counter = setCounter()
 	rightImage = getImage(counter)
 	
-	calculateAngleAndDistance(leftImage, rightImage, intrinsicMatrixL, distortionCoeffsL, refinedCameraMatrixL, ROIL, intrinsicMatrixR, distortionCoeffsR, refinedCameraMatrixR, ROIR)
+	movementArray = user.calculateAngleAndDistance(leftImage, rightImage, leftCamera['intrinsicMatrix'], leftCamera['distortionCoeffs'], leftCamera['refinedCameraMatrix'], leftCamera['roi'], rightCamera['intrinsicMatrix'], rightCamera['distortionCoeffs'], rightCamera['refinedCameraMatrix'], rightCamera['roi'])
+	
+	#movementArray = objDistance, theta
+	
+	#move MP4GS

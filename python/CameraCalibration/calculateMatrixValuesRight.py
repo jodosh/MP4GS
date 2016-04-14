@@ -50,10 +50,12 @@ if goodImages >9:
 	h,  w = img.shape[:2]
 	refinedCameraMatrix, roi=cv2.getOptimalNewCameraMatrix(intrinsicMatrix,distortionCoeffs,(w,h),1,(w,h))
 
-	np.savez("refinedCameraMatrixRight", refinedCameraMatrix)
-	np.savez("ROIRight", roi)
-	np.savez("intrinsicMatrixRight", intrinsicMatrix)
-	np.savez("distortionCoeffsRight", distortionCoeffs)
+	np.savez("RightCamera", refinedCameraMatrix=refinedCameraMatrix, roi=roi, intrinsicMatrix=intrinsicMatrix, distortionCoeffs=distortionCoeffs)
+	
+	#np.savez("refinedCameraMatrixRight", refinedCameraMatrix)
+	#np.savez("ROIRight", roi)
+	#np.savez("intrinsicMatrixRight", intrinsicMatrix)
+	#np.savez("distortionCoeffsRight", distortionCoeffs)
 else:
 	print("You need to supply at least 10 good images. You supplied %d" % (goodImages))	
 	

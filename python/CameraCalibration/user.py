@@ -53,20 +53,20 @@ def deg2rad(deg):
 	
 #alpha2angle takes in the number of pixels from the left edge of an undistorted image and returns how many radians that is from camA
 #this works for LeftCam
-def alpha2angle(pixels):
+def convert2Alpha(pixels):
 
 	alpha = 20 / 33.9333333*pixels*-1
 	alpha = alpha + 135 - 18
 	return deg2rad(alpha)
 
 #this works for RightCam
-def beta2angle(pixels)
+def convert2Beta(pixels)
 
 	beta = 20 / 31.125*pixels*-1
 	beta = beta + 130.6747 + 15
 	return deg2rad(beta)
 	
-def calculateAngleAndDistance(leftImage, rightImage, intrinsicMatrixL, distortionCoeffsL, refinedCameraMatrixL, ROIL, intrinsicMatrixR, distortionCoeffsR, refinedCameraMatrixR, ROIR):
+def calculateAngleAndDistance(leftImage, rightImage, leftCamera, rightCamera):
 
 	#Outline of steps
 	#Load Intrisic Matricies
@@ -85,11 +85,11 @@ def calculateAngleAndDistance(leftImage, rightImage, intrinsicMatrixL, distortio
 	#Use law of cosines to calculate distance
 
 	bwImageLeft = biModalInvBlur(leftImage)
-	uImageLeft = undistortImg(bwImageLeft, intrinsicMatrixL, distortionCoeffsL, refinedCameraMatrixL, ROIL)
+	uImageLeft = undistortImg(bwImageLeft, leftCamera[0], leftCamera[1], leftCamera[2], leftCamera[3])
 	centerLeft = centerMass(uImageLeft)
 	
 	bwImageRight = biModalInvBlur(rightImage)
-	uImageRight = undistortImg(bwImageRight, intrinsicMatrixR, distortionCoeffsR, refinedCameraMatrixR, ROIR)
+	uImageRight = undistortImg(bwImageRight, rightCamera[0], rightCamera[1], rightCamera[2], rightCamera[3])
 	centerRight = centerMass(uImageRight)
 	
 	#these are radians from left and right
@@ -99,11 +99,10 @@ def calculateAngleAndDistance(leftImage, rightImage, intrinsicMatrixL, distortio
 	#law of cosines to find the angle
 	Y = (177 * math.sin(beta)) / (math.sin(180 - beta - alpha))
 	#print("Y = %.2f \n", Y);
+	#93=a
 	objDistance = sqrt((8649 + pow(Y, 2)) - (186 * Y*math.cos(alpha)))
 	theta = asin((Y*math.sin(alpha)) / (objDistance))
 	theta = theta * 180 / 3.14159265
 	theta = theta - 90
 	
 	return (objDistance, theta)
-
-	
