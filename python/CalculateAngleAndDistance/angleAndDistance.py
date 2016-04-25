@@ -1,7 +1,7 @@
 import cv2
 import numpy as np
 import serial
-import user.py
+import user
 
 
 loopCounter = 0
@@ -60,7 +60,9 @@ while(isTrue):
 	counter = setCounter()
 	rightImage = getImage(counter)
 	
-	movementArray = user.calculateAngleAndDistance(leftImage, rightImage, leftCamera['intrinsicMatrix'], leftCamera['distortionCoeffs'], leftCamera['refinedCameraMatrix'], leftCamera['roi'], rightCamera['intrinsicMatrix'], rightCamera['distortionCoeffs'], rightCamera['refinedCameraMatrix'], rightCamera['roi'])
+	movementArray = user.calculateAngleAndDistance(leftImage, rightImage, leftCamera, rightCamera)
+	
+	#movementArray = user.calculateAngleAndDistance(leftImage, rightImage, leftCamera['intrinsicMatrix'], leftCamera['distortionCoeffs'], leftCamera['refinedCameraMatrix'], leftCamera['roi'], rightCamera['intrinsicMatrix'], rightCamera['distortionCoeffs'], rightCamera['refinedCameraMatrix'], rightCamera['roi'])
 	
 	#movementArray = objDistance, theta
 	

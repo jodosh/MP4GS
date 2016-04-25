@@ -20,8 +20,9 @@ img = cv2.imread('Left.bmp',0)
 
 img2 = user.undistortImg(img, leftCamera['intrinsicMatrix'], leftCamera['distortionCoeffs'], leftCamera['refinedCameraMatrix'], leftCamera['roi'])
 
-#cv2.imshow('image',img2)
-#cv2.waitKey(0)
+cv2.imshow('image',img2)
+cv2.waitKey(0)
+cv2.imwrite("LeftUndistort.bmp", img2)
 
 
 
@@ -40,6 +41,7 @@ img2 = user.undistortImg(img, rightCamera['intrinsicMatrix'], rightCamera['disto
 
 cv2.imshow('image',img2)
 cv2.waitKey(0)
+cv2.imwrite("RightUndistort.bmp", img2)
 
 
 

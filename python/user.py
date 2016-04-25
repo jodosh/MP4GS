@@ -54,13 +54,19 @@ def deg2rad(deg):
 #alpha2angle takes in the number of pixels from the left edge of an undistorted image and returns how many radians that is from camA
 #this works for LeftCam
 def convert2Alpha(pixels):
+        
+        #each pixel is N deg in FOV
+        #multiply the number of pixels by that conversion factor to get degress from the left
+        #convert to radians
 
-	alpha = 20 / 33.9333333*pixels*-1
-	alpha = alpha + 135 - 18
+	#alpha = 20 / 33.9333333*pixels*-1
+	alpha = degPerPixelAlpha*pixels*-1
+	#the left camera is mounted pivioted in X deg
+	#alpha = alpha + 135 - 18
 	return deg2rad(alpha)
 
 #this works for RightCam
-def convert2Beta(pixels)
+def convert2Beta(pixels):
 
 	beta = 20 / 31.125*pixels*-1
 	beta = beta + 130.6747 + 15
@@ -85,11 +91,11 @@ def calculateAngleAndDistance(leftImage, rightImage, leftCamera, rightCamera):
 	#Use law of cosines to calculate distance
 
 	bwImageLeft = biModalInvBlur(leftImage)
-	uImageLeft = undistortImg(bwImageLeft, leftCamera[0], leftCamera[1], leftCamera[2], leftCamera[3])
+	uImageLeft = user.undistortImg(img, leftCamera['intrinsicMatrix'], leftCamera['distortionCoeffs'], leftCamera['refinedCameraMatrix'], leftCamera['roi'])
 	centerLeft = centerMass(uImageLeft)
 	
 	bwImageRight = biModalInvBlur(rightImage)
-	uImageRight = undistortImg(bwImageRight, rightCamera[0], rightCamera[1], rightCamera[2], rightCamera[3])
+	uImageRight = user.undistortImg(img, rightCamera['intrinsicMatrix'], rightCamera['distortionCoeffs'], rightCamera['refinedCameraMatrix'], rightCamera['roi'])
 	centerRight = centerMass(uImageRight)
 	
 	#these are radians from left and right
