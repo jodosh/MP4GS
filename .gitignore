@@ -1,1 +1,3 @@
-python/CameraCalibration/Thumbs.db
+*.db
+*.pyc
+python/CameraCalibration/*.bmp

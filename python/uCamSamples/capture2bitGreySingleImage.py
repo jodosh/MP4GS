@@ -6,7 +6,7 @@ import serial
 loopCounter = 0
 inByte = bytearray(4800) #4800 pixels in an 80x60 image each pixel is 2-bit
 counterArr = bytearray(3)
-ser = serial.Serial('/dev/ttyACM0', 115200, timeout=None)
+ser = serial.Serial('COM21', 115200, timeout=None)
 isTrue = True
 
 

@@ -23,8 +23,17 @@ def setCounter():
 def getImage(fileName, counter):
     
 	incomingCounter = 0
+	position = 0
 	while (incomingCounter < counter):
-		inByte[incomingCounter] = ser.read(1)	 #save the int values for the HEX of each pixel
+		tempByte = ser.read(1)
+		inByte[position] = ((ord(tempByte) & 0xC0 >> 6) * 85)	 #save the int values for the HEX of each pixel
+		position+=1
+		inByte[position] = ((ord(tempByte) & 0x30 >> 4) * 85)	 #save the int values for the HEX of each pixel
+		position+=1
+		inByte[position] = ((ord(tempByte) & 0x0C >> 2) * 85)	 #save the int values for the HEX of each pixel
+		position+=1
+		inByte[position] = ((ord(tempByte) & 0x03) * 85)	 #save the int values for the HEX of each pixel
+		position+=1
 		incomingCounter+=1
 	 
 	
