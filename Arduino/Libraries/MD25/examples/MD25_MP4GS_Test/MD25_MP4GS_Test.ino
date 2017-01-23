@@ -12,11 +12,15 @@ MD25 controller;
 void setup() {
   controller = MD25(0xB0 >> 1);
   Wire.begin();
+  controller.setAccelerationRate(3);
 }
 
 void loop() {
-  controller.setMode(0);
-  controller.setMotor1Speed(164); //half speed
-  controller.setMotor2Speed(128); //stop
-  delay(1000);
+  controller.setMode(0); //each motor register is litteral speed in range 0 (full reverse) 128 (stop) 255 (full forward)
+  controller.setMotor1Speed(191); //left motor half speed
+  controller.setMotor2Speed(128); //right motor stop
+  delay(1000); //spin for 1 second
+  controller.setMotor1Speed(128); //left motor stop
+  controller.setMotor2Speed(128); //right motor stop
+  delay(500); //stop for 0.5 second
 }
