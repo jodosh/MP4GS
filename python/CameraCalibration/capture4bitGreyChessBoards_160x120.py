@@ -8,6 +8,7 @@ loopCounter = 0
 inByte = bytearray(19200) #19200 pixels in an 160x120 image each pixel is 8-bit
 counterArr = bytearray(3)
 ser = serial.Serial('COM6', 115200, timeout=None)
+#ser = serial.Serial('COM6', 14400, timeout=None)
 isTrue = True
 isSetUp = False
 
@@ -27,16 +28,12 @@ def getImage(fileName, counter):
 	incomingCounter = 0
 	position = 0
 	while (incomingCounter < counter):
-		tempByte = ser.read(1)
-		inByte[position] = ((ord(tempByte) & 0xC0 >> 6) * 85)	 #save the int values for the HEX of each pixel
-		position+=1
-		inByte[position] = ((ord(tempByte) & 0x30 >> 4) * 85)	 #save the int values for the HEX of each pixel
-		position+=1
-		inByte[position] = ((ord(tempByte) & 0x0C >> 2) * 85)	 #save the int values for the HEX of each pixel
-		position+=1
-		inByte[position] = ((ord(tempByte) & 0x03) * 85)	 #save the int values for the HEX of each pixel
-		position+=1
-		incomingCounter+=1
+	  tempByte = ser.read(1)
+	  inByte[position] = ((ord(tempByte) & 0xF0 >> 4) *17)	 #save the int values for the HEX of each pixel
+	  position+=1
+	  inByte[position] = (ord(tempByte) & 0x0F) * 17	 #save the int values for the HEX of each pixel
+	  position+=1
+	  incomingCounter+=1
 	 
 	
 	
