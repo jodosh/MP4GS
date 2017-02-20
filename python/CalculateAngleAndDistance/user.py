@@ -55,18 +55,29 @@ def convert2Alpha(pixels):
         #multiply the number of pixels by that conversion factor to get degress from the left
         #convert to radians
 
+	degPerPixel = 0.574712
+	#X is the angle of the left edge of the picture
+	#X = 59.65
+	X = 120.34
 	#alpha = 20 / 33.9333333*pixels*-1
-	alpha = degPerPixelAlpha*pixels
+	alpha = degPerPixel*pixels
 	#the left camera is mounted pivioted in X deg
-	#alpha = X - alpha
+	alpha = X - alpha
+	print "DEBUG ALPHA DEG\n"
+	print alpha
 	return math.radians(alpha)
 
 #this works for RightCam
 def convert2Beta(pixels):
 
-	beta = degPerPixelAlpha*pixels
+	degPerPixel = 0.515464
+	#X is the angle of the left edge of the picture
+	X = 25
+	beta = degPerPixel*pixels
 	#the right camera is mounted pivioted in X deg
-	#beta = X + beta
+	beta = X + beta
+	print "DEBUG BETA DEG\n"
+	print beta
 	return math.radians(beta)
 	
 def calculateAngleAndDistance(leftImage, rightImage, leftCamera, rightCamera):
@@ -91,23 +102,87 @@ def calculateAngleAndDistance(leftImage, rightImage, leftCamera, rightCamera):
 	#Use law of cosines to calculate distance
 
 	bwImageLeft = biModalInvBlur(leftImage)
-	uImageLeft = user.undistortImg(img, leftCamera['intrinsicMatrix'], leftCamera['distortionCoeffs'], leftCamera['refinedCameraMatrix'], leftCamera['roi'])
+	uImageLeft = undistortImg(bwImageLeft, leftCamera['intrinsicMatrix'], leftCamera['distortionCoeffs'], leftCamera['refinedCameraMatrix'], leftCamera['roi'])
 	centerLeft = centerMass(uImageLeft)
 	
 	bwImageRight = biModalInvBlur(rightImage)
-	uImageRight = user.undistortImg(img, rightCamera['intrinsicMatrix'], rightCamera['distortionCoeffs'], rightCamera['refinedCameraMatrix'], rightCamera['roi'])
+	uImageRight = undistortImg(bwImageRight, rightCamera['intrinsicMatrix'], rightCamera['distortionCoeffs'], rightCamera['refinedCameraMatrix'], rightCamera['roi'])
 	centerRight = centerMass(uImageRight)
 	
 	#these are radians from left and right
 	alpha = convert2Alpha(centerLeft[0])
+	print "DEBUG ALPHA\n"
+	print alpha
 	beta = convert2Beta(centerRight[0])
+	print "DEBUG BETA\n"
+	print beta
 	
-	#law of cosines to find the angle
-	#the cameras are 7" apart or 177.8mm
+	returnObj = privateDistanceFcnLeft(alpha, beta)
+	
+	print "DEBUG one"
+	print returnObj
+	
+	returnObj = privateDistanceFcnLeft(alpha+math.radians(10), beta-math.radians(10))
+	
+	print "DEBUG two"
+	print returnObj
+	
+	returnObj = privateDistanceFcnLeft(alpha-math.radians(10), beta+math.radians(10))
+	
+	print "DEBUG three"
+	print returnObj
+	
+	returnObj = privateDistanceFcnRight(alpha, beta)
+	
+	print "DEBUG one"
+	print returnObj
+	
+	returnObj = privateDistanceFcnRight(alpha+math.radians(10), beta-math.radians(10))
+	
+	print "DEBUG two"
+	print returnObj
+	
+	returnObj = privateDistanceFcnRight(alpha-math.radians(10), beta+math.radians(10))
+	
+	print "DEBUG three"
+	print returnObj
+	
+	returnObj = privateDistanceFcnRight(alpha+math.radians(10), beta+math.radians(10))
+	
+	print "DEBUG four"
+	print returnObj
+	
+	returnObj = privateDistanceFcnRight(alpha-math.radians(10), beta-math.radians(10))
+	
+	print "DEBUG five"
+	print returnObj
+	
+	return returnObj
+	
+def privateDistanceFcnLeft(alpha, beta):
 	S = (177.8 * math.sin(beta)) / (math.sin(math.pi - beta - alpha))
-	objDistance = sqrt(7903.21 + (S*S) - (177.8 * S * math.cos(alpha))
-	omega=math.asin(S*math.sin(alpha)/objDistance)
-	theta = omega - math.pi/2
+	objDistance = math.sqrt(7903.21 + (S*S) - (177.8 * S * math.cos(alpha)))
+	tmpVar = S*math.sin(alpha)/objDistance
+	print "JDHBETA"
+	print tmpVar
+	print "JDHBETA"
+	angle1 = math.asin(88.9*math.sin(alpha)/objDistance)
+	omega = math.pi - angle1 - alpha
+	print "\n\n\n"
+	print math.degrees(omega)
+	print "\n\n\n"
+	theta = (math.pi/2) - omega
 	theta = math.degrees(theta)
 	
 	return (objDistance, theta)
+	
+def privateDistanceFcnRight(alpha, beta):
+	S = (177.8 * math.sin(beta)) / (math.sin(math.pi - beta-alpha))
+	objDistance = math.sqrt(7903.21 + (S*S) - (177.8 * S * math.cos(beta)))
+	angle1 = math.asin(88.9*math.sin(beta)/objDistance)
+	omega = math.pi - angle1 - beta
+	theta = (math.pi/2) - omega
+	theta = math.degrees(theta)
+	
+	return (objDistance, theta)
+

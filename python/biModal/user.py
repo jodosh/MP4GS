@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 import math
 
-#Takes an image and returns an inverted blured binary image in its place
+#Takes an image and returns an inverted blured (noise removed) binary image in its place
 def biModalInvBlur(image):
 
 	#turns all pixels that are darker than 60 -> 255, all others 0
@@ -46,10 +46,6 @@ def undistortImg(image, intrinsicMatrix, distortionCoeffs, refinedCameraMatrix, 
 		
 	return undistortedImage
 	
-def deg2rad(deg):
-
-	deg = 3.14159265*deg / 180
-	return deg
 	
 #alpha2angle takes in the number of pixels from the left edge of an undistorted image and returns how many radians that is from camA
 #this works for LeftCam
@@ -59,23 +55,30 @@ def convert2Alpha(pixels):
         #multiply the number of pixels by that conversion factor to get degress from the left
         #convert to radians
 
+	degPerPixel = 0.574712
+	#X is the angle of the left edge of the picture
+	X = 59.65
 	#alpha = 20 / 33.9333333*pixels*-1
-	degPerPixelAlpha=0.59
-	alpha = degPerPixelAlpha*pixels
+	alpha = degPerPixel*pixels
 	#the left camera is mounted pivioted in X deg
-	#alpha = alpha - degFieldOfView/2 - 
-	alpha = 102.5 - alpha
-	return deg2rad(alpha)
+	alpha = X - alpha
+	return math.radians(alpha)
 
 #this works for RightCam
 def convert2Beta(pixels):
 
-	beta = 0.59*pixels
-	#beta = beta + 130.6747 + 15
-	beta = 22.5 + beta
-	return deg2rad(beta)
+	degPerPixel = 0.515464
+	#X is the angle of the left edge of the picture
+	X = 71.13
+	beta = degPerPixel*pixels
+	#the right camera is mounted pivioted in X deg
+	beta = X + beta
+	return math.radians(beta)
 	
 def calculateAngleAndDistance(leftImage, rightImage, leftCamera, rightCamera):
+	#returned values are: 
+	#	the distance for the center point of the robot to the object
+	#	the angle for that same center point (negative is left)
 
 	#Outline of steps
 	#Load Intrisic Matricies
@@ -94,27 +97,23 @@ def calculateAngleAndDistance(leftImage, rightImage, leftCamera, rightCamera):
 	#Use law of cosines to calculate distance
 
 	bwImageLeft = biModalInvBlur(leftImage)
-	uImageLeft = undistortImg(bwImageLeft, leftCamera['intrinsicMatrix'], leftCamera['distortionCoeffs'], leftCamera['refinedCameraMatrix'], leftCamera['roi'])
+	uImageLeft = user.undistortImg(img, leftCamera['intrinsicMatrix'], leftCamera['distortionCoeffs'], leftCamera['refinedCameraMatrix'], leftCamera['roi'])
 	centerLeft = centerMass(uImageLeft)
 	
 	bwImageRight = biModalInvBlur(rightImage)
-	uImageRight = undistortImg(bwImageRight, rightCamera['intrinsicMatrix'], rightCamera['distortionCoeffs'], rightCamera['refinedCameraMatrix'], rightCamera['roi'])
+	uImageRight = user.undistortImg(img, rightCamera['intrinsicMatrix'], rightCamera['distortionCoeffs'], rightCamera['refinedCameraMatrix'], rightCamera['roi'])
 	centerRight = centerMass(uImageRight)
 	
 	#these are radians from left and right
 	alpha = convert2Alpha(centerLeft[0])
 	beta = convert2Beta(centerRight[0])
 	
-	B = 7 * math.sin(beta) / math.sin(180 - alpha - beta)
-	objDistance = math.sqrt(B * B + 12.25 - B * 7 * math.cos(alpha))
-	
 	#law of cosines to find the angle
-	#Y = (177 * math.sin(beta) * math.sin(alpha) / (math.sin(180 - beta - alpha))
-	#print("Y = %.2f \n", Y);
-	#93=a
-	#objDistance = math.sqrt((8649 + pow(Y, 2)) - (186 * Y*math.cos(alpha)))
-	#theta = math.asin((17*math.sin(alpha)) / (objDistance))
-	#theta = theta * 180 / 3.14159265
-	theta =  90
+	#the cameras are 7" apart or 177.8mm
+	S = (177.8 * math.sin(beta)) / (math.sin(math.pi - beta - alpha))
+	objDistance = sqrt(7903.21 + (S*S) - (177.8 * S * math.cos(alpha)))
+	omega = math.asin(S*math.sin(alpha)/objDistance)
+	theta = omega - math.pi/2
+	theta = math.degrees(theta)
 	
 	return (objDistance, theta)
